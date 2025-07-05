@@ -1,0 +1,42 @@
+/* Hide the ugly CAPTCHA fieldset border and title */
+.captcha {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.captcha legend,
+.captcha .fieldset-legend {
+  display: none !important;
+}
+
+/* Hide the default CAPTCHA description */
+.captcha .captcha-description,
+.captcha .description {
+  display: none !important;
+}
+
+/* Clean up the captcha.eu widget container */
+#captcha-eu-widget {
+  margin: 15px 0;
+  border: none;
+  background: none;
+}
+
+/* Hide the hidden captcha_response field completely in invisible mode */
+.form-item-captcha-response {
+  display: none !important;
+}
+
+/* For widget mode, make sure the widget looks clean */
+.cpt_widget {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Remove any Drupal fieldset styling that might interfere */
+.captcha .fieldset-wrapper {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
