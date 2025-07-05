@@ -97,6 +97,9 @@
       
       e.preventDefault();
       
+      // Store which button was clicked to preserve op parameter
+      var clickedButton = activeElement;
+      
       // Find all submit buttons and disable them
       var submitButtons = form.querySelectorAll('input[type="submit"], button[type="submit"]');
       submitButtons.forEach(function(btn) {
@@ -110,11 +113,25 @@
         console.log('Solution generated:', solution);
         hiddenField.value = JSON.stringify(solution);
         
-        // Re-enable buttons and submit
+        // Re-enable buttons
         submitButtons.forEach(function(btn) {
           btn.disabled = false;
           btn.textContent = btn.dataset.originalText || 'Send message';
         });
+        
+        // Add hidden field for the clicked button's value to preserve op parameter
+        var existingOpField = form.querySelector('input[name="op"]');
+        if (existingOpField) {
+          existingOpField.remove();
+        }
+        
+        if (clickedButton && clickedButton.name === 'op') {
+          var opField = document.createElement('input');
+          opField.type = 'hidden';
+          opField.name = 'op';
+          opField.value = clickedButton.value;
+          form.appendChild(opField);
+        }
         
         // Submit the form
         form.submit();
