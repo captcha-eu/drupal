@@ -87,8 +87,19 @@
       return;
     }
 
-    // Intercept form submission
+    // Intercept form submission, but only for actual submission (not preview)
     form.addEventListener('submit', function(e) {
+      // Check if this is a preview action - skip captcha for preview
+      var activeElement = document.activeElement;
+      if (activeElement && (
+        activeElement.name === 'preview' || 
+        activeElement.value === 'Preview' ||
+        activeElement.textContent === 'Preview' ||
+        activeElement.classList.contains('preview-button')
+      )) {
+        return; // Allow normal preview functionality
+      }
+      
       e.preventDefault();
       
       // Find all submit buttons and disable them
