@@ -95,7 +95,7 @@
         activeElement.name === 'preview' || 
         activeElement.value === 'Preview' ||
         activeElement.textContent === 'Preview' ||
-        activeElement.value === 'op' ||
+        activeElement.name === 'op' ||
         activeElement.classList.contains('preview-button')
       )) {
         return; // Allow normal preview functionality
