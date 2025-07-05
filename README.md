@@ -1,38 +1,69 @@
 # Captcha.EU Drupal Extension
 
-A Drupal module that integrates [Captcha.EU](https://captcha.eu/) anti-bot protection service into your Drupal forms.
+![Drupal Version](https://img.shields.io/badge/Drupal-8.9%2B%20%7C%209.x%20%7C%2010.x%20%7C%2011.x-blue)
+![License](https://img.shields.io/badge/License-GPL--2.0%2B-green)
+![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
-## Features
+A comprehensive Drupal module that integrates [Captcha.EU](https://captcha.eu/) anti-bot protection service into your Drupal forms. Provides seamless spam protection without compromising user experience.
 
-- **Two Operation Modes**:
-  - **Invisible Mode**: Seamless form protection without visible captcha (default)
-  - **Widget Mode**: Visible captcha widget for enhanced user awareness
-- **Easy Configuration**: Simple admin interface for API keys and settings
-- **Theme Support**: Light, dark, clean, and auto themes for widget mode
-- **Auto-run Option**: Automatically run captcha on page load
-- **Comprehensive Integration**: Works with contact forms, user registration, and custom forms
-- **Clean UI**: Removes Drupal's default ugly CAPTCHA styling
+## ✨ Features
 
-## Requirements
+- 🔒 **Dual Operation Modes**:
+  - **Invisible Mode**: Seamless protection without visible captcha (default)
+  - **Widget Mode**: Visible "I am human" button for enhanced user awareness
+- ⚙️ **Easy Configuration**: Intuitive admin interface for API keys and settings
+- 🎨 **Theme Support**: Light, dark, clean, and auto themes for widget mode
+- 🌐 **Universal Compatibility**: Works with contact forms, user registration, search forms, and custom forms
+- 💡 **Clean UI**: Automatically removes Drupal's default CAPTCHA styling
+- 📊 **Enhanced Logging**: Detailed validation logging for debugging
+- 🚀 **High Performance**: Handles long captcha tokens (3000+ characters)
+- 🔄 **Multiple Forms**: Supports multiple captcha instances per page with unique IDs
 
-- Drupal 8.9+ / 9.x / 10.x / 11.x
-- [CAPTCHA module](https://www.drupal.org/project/captcha)
-- Captcha.EU account with API keys
+## 📋 Requirements
 
-## Installation
+- **Drupal**: 8.9+ / 9.x / 10.x / 11.x
+- **Dependencies**: [CAPTCHA module](https://www.drupal.org/project/captcha)
+- **Account**: Captcha.EU account with API keys ([Sign up here](https://captcha.eu/signup))
 
-1. **Install via Composer** (recommended):
+## 🚀 Installation
+
+### Method 1: Download from GitHub (Recommended)
+
+1. **Download the module**:
    ```bash
-   composer require drupal/captchaeu
+   cd /path/to/your/drupal/web/modules/custom/
+   git clone https://github.com/captcha-eu/drupal.git captchaeu
    ```
 
-2. **Or download manually**:
-   - Download and extract to `/modules/custom/captchaeu/`
+2. **Install dependencies**:
+   ```bash
+   # Install CAPTCHA module if not already installed
+   composer require drupal/captcha
+   ```
 
 3. **Enable the modules**:
    ```bash
-   drush en captcha captchaeu
+   drush en captcha captchaeu -y
    ```
+
+### Method 2: Manual Installation
+
+1. **Download and extract**:
+   - Download ZIP from [GitHub releases](https://github.com/captcha-eu/drupal/releases)
+   - Extract to `/web/modules/custom/captchaeu/`
+
+2. **Enable via Drupal UI**:
+   - Go to `Extend` → Enable `CAPTCHA` and `Captcha.EU` modules
+
+### Method 3: Using DDEV (Development)
+
+```bash
+# Clone and set up development environment
+git clone https://github.com/captcha-eu/drupal.git captcha-eu-drupal
+cd your-drupal-project
+ln -s /path/to/captcha-eu-drupal web/modules/custom/captchaeu
+ddev drush en captcha captchaeu -y
+```
 
 ## Configuration
 
