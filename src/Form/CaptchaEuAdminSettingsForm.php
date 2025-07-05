@@ -67,6 +67,42 @@ class CaptchaEuAdminSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('enable_validation_logging'),
     ];
 
+    $form['widget'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Widget settings'),
+      '#open' => TRUE,
+    ];
+
+    $form['widget']['widget_mode'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Widget mode'),
+      '#description' => $this->t('Choose how the captcha should be displayed to users.'),
+      '#options' => [
+        'invisible' => $this->t('Invisible mode - Form interception (default)'),
+        'widget' => $this->t('Visible widget - Shows a captcha widget on the form'),
+      ],
+      '#default_value' => $config->get('widget_mode') ?: 'invisible',
+    ];
+
+    $form['widget']['widget_theme'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Widget theme'),
+      '#description' => $this->t('Choose the visual theme for the captcha widget (only applies to widget mode).'),
+      '#options' => [
+        'light' => $this->t('Light'),
+        'dark' => $this->t('Dark'),
+        'clean' => $this->t('Clean'),
+        'auto' => $this->t('Auto'),
+      ],
+      '#default_value' => $config->get('widget_theme') ?: 'auto',
+      '#states' => [
+        'visible' => [
+          ':input[name="widget_mode"]' => ['value' => 'widget'],
+        ],
+      ],
+    ];
+
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -79,6 +115,8 @@ class CaptchaEuAdminSettingsForm extends ConfigFormBase {
       ->set('public_key', $form_state->getValue('captchaeu_public_key'))
       ->set('rest_key', $form_state->getValue('captchaeu_rest_key'))
       ->set('enable_validation_logging', $form_state->getValue('enable_validation_logging'))
+      ->set('widget_mode', $form_state->getValue('widget_mode'))
+      ->set('widget_theme', $form_state->getValue('widget_theme'))
       ->save();
 
     parent::submitForm($form, $form_state);

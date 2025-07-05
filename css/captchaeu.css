@@ -21,6 +21,22 @@
   margin: 15px 0;
   border: none;
   background: none;
+  min-height: 80px; /* Ensure container has height for widget */
+}
+
+/* Make sure widget is visible when in widget mode */
+#captcha-eu-widget .cpt_widget {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* Ensure the widget iframe is visible */
+#captcha-eu-widget iframe {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Hide the hidden captcha_response field completely in invisible mode */

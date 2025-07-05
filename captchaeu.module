@@ -36,6 +36,7 @@ function captchaeu_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_captcha().
  */
 function captchaeu_captcha($op, $captcha_type = '') {
+  static $widget_counter = 0;
 
   switch ($op) {
     case 'list':
@@ -44,6 +45,9 @@ function captchaeu_captcha($op, $captcha_type = '') {
     case 'generate':
       $captcha = [];
       if ($captcha_type == 'captchaeu') {
+        // Increment counter for unique IDs
+        $widget_counter++;
+        
         $config = \Drupal::config('captchaeu.settings');
         $renderer = \Drupal::service('renderer');
         $captchaeu_public_key = $config->get('public_key');
@@ -63,20 +67,63 @@ function captchaeu_captcha($op, $captcha_type = '') {
           // captcha type can be displayed on cached pages.
           $captcha['cacheable'] = TRUE;
 
+          // Get widget mode setting
+          $widget_mode = $config->get('widget_mode') ?: 'invisible';
+          
+          // Generate unique IDs for this widget instance
+          $widget_id = 'captcha-eu-widget-' . $widget_counter;
+          $field_id = 'captcha_at_solution_' . $widget_counter;
+          
+          // Build widget HTML based on mode
+          if ($widget_mode === 'widget') {
+            // Widget mode - use the cpt_widget class structure
+            $widget_theme = $config->get('widget_theme') ?: 'auto';
+            
+            $widget_markup = '<div id="' . $widget_id . '" class="captcha-eu-widget cpt_widget" data-key="' . $captchaeu_public_key . '"';
+            $widget_markup .= ' data-theme="' . $widget_theme . '"';
+            $widget_markup .= ' data-field-selector="#' . $field_id . '"';
+            $widget_markup .= '></div>';
+          } else {
+            // Invisible mode - simple div
+            $widget_markup = '<div id="' . $widget_id . '" class="captcha-eu-widget"></div>';
+          }
+          
           $captcha['form']['captchaeu_widget'] = [
-            '#markup' => '<div id="captcha-eu-widget"></div>',
-            '#suffix' => Markup::create('<noscript>' . t('You need Javascript for CAPTCHA verification to submit this form.') . '</noscript>'),
-            '#attached' => [
+            '#markup' => Markup::create($widget_markup . '<noscript>' . t('You need Javascript for CAPTCHA verification to submit this form.') . '</noscript>'),
+            '#allowed_tags' => ['div', 'input', 'noscript'],
+          ];
+          
+          // Add the solution field as a textarea to handle long tokens
+          // This ensures JavaScript can update the value
+          $captcha['form']['captcha_at_solution'] = [
+            '#type' => 'textarea',
+            '#title' => 'Captcha Solution',
+            '#title_display' => 'invisible',
+            '#default_value' => '',
+            '#required' => FALSE,
+            '#rows' => 1,
+            '#resizable' => FALSE,
+            '#attributes' => [
+              'id' => $field_id,
+              'style' => 'position: absolute; left: -9999px; width: 1px; height: 1px;',
+              'tabindex' => '-1',
+              'aria-hidden' => 'true',
+            ],
+          ];
+          
+          
+          $captcha['form']['#attached'] = [
               'library' => [
                 'captchaeu/captcha-eu-sdk',
               ],
               'drupalSettings' => [
                 'captchaeu' => [
                   'publicKey' => $captchaeu_public_key,
+                  'widgetMode' => $config->get('widget_mode') ?: 'invisible',
+                  'widgetTheme' => $config->get('widget_theme') ?: 'auto',
                 ],
               ],
-            ],
-          ];
+            ];
         }
         else {
           if (\Drupal::currentUser()->hasPermission('administer CAPTCHA settings')) {
@@ -99,10 +146,16 @@ function captchaeu_captcha($op, $captcha_type = '') {
 function captchaeu_captcha_validation($solution, $response, $element, $form_state) {
   $config = \Drupal::config('captchaeu.settings');
   $requestStack = \Drupal::service('request_stack');
+  
+  // Get the captcha solution from the form
   $captchaSolution = $requestStack->getCurrentRequest()->request->get('captcha_at_solution');
 
   $captchaeu_rest_key = $config->get('rest_key');
   if (empty($captchaSolution) || empty($captchaeu_rest_key)) {
+    // No solution provided - validation fails
+    if ($config->get('enable_validation_logging')) {
+      \Drupal::logger('captchaeu')->info('No captcha solution provided - validation failed');
+    }
     return FALSE;
   }
 
@@ -120,19 +173,20 @@ function captchaeu_captcha_validation($solution, $response, $element, $form_stat
   $apiResponseContent = $apiResponse->getBody()->getContents();
   $result = json_decode($apiResponseContent, TRUE);
   
-  $loggerContent = new FormattableMarkup('Captcha validation failed: "@errors". Status code: "@status_code".', [
-    '@status_code' => $apiResponse->getStatusCode(),
-    '@errors' => isset($result['error']) ? $result['error'] : 'None',
-  ]);
-  $loggerContentString = $loggerContent->__toString();
-
   if (isset($result['success']) && $result['success'] == TRUE) {
+    if ($config->get('enable_validation_logging')) {
+      \Drupal::logger('captchaeu')->info('Captcha validation successful');
+    }
     return TRUE;
   }
 
   // Log any failed validation attempts, if validation logging is enabled:
   if ($config->get('enable_validation_logging')) {
-    \Drupal::logger('captchaeu')->info($loggerContentString);
+    $loggerContent = new FormattableMarkup('Captcha validation failed: "@errors". Status code: "@status_code".', [
+      '@status_code' => $apiResponse->getStatusCode(),
+      '@errors' => isset($result['error']) ? $result['error'] : (isset($result['detail']) ? $result['detail'] : 'None'),
+    ]);
+    \Drupal::logger('captchaeu')->info($loggerContent->__toString());
   }
   return FALSE;
 }

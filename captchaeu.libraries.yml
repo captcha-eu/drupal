@@ -7,3 +7,6 @@ captcha-eu-sdk:
   js:
     https://www.captcha.eu/sdk.js: { attributes: { defer: true }, external: true }
     js/captchaeu.setup.js: {}
+  css:
+    theme:
+      css/captchaeu.css: {}
