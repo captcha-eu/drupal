@@ -89,17 +89,13 @@
 
     // Intercept form submission
     form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Store which button was clicked
+      // Check if this is a preview action - skip captcha for preview
       var activeElement = document.activeElement;
-      var isPreview = activeElement && (
-        activeElement.name === 'preview' || 
-        activeElement.value === 'Preview' ||
-        activeElement.textContent === 'Preview' ||
-        activeElement.name === 'op' ||
-        activeElement.classList.contains('preview-button')
-      );
+      if (activeElement && activeElement.value === 'Preview') {
+        return; // Allow normal preview functionality
+      }
+      
+      e.preventDefault();
       
       // Find all submit buttons and disable them
       var submitButtons = form.querySelectorAll('input[type="submit"], button[type="submit"]');
@@ -114,19 +110,14 @@
         console.log('Solution generated:', solution);
         hiddenField.value = JSON.stringify(solution);
         
-        // Re-enable buttons
+        // Re-enable buttons and submit
         submitButtons.forEach(function(btn) {
           btn.disabled = false;
           btn.textContent = btn.dataset.originalText || 'Send message';
         });
         
-        // If this was a preview action, trigger the preview button click
-        if (isPreview && activeElement) {
-          activeElement.click();
-        } else {
-          // Submit the form normally
-          form.submit();
-        }
+        // Submit the form
+        form.submit();
       }).catch(function(error) {
         console.error('Error generating solution:', error);
         
