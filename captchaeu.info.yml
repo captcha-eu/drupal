@@ -1,0 +1,8 @@
+name: 'Captcha.EU'
+type: module
+description: 'Integrate captcha.eu protection service to prevent spam and abuse while ensuring smooth user experience.'
+package: Spam control
+core_version_requirement: ^8.9 || ^9 || ^10 || ^11
+configure: captchaeu.admin_settings_form
+dependencies:
+  - captcha:captcha

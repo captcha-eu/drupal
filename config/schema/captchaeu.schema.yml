@@ -1,0 +1,15 @@
+# Schema for the configuration files of the captchaeu module.
+
+captchaeu.settings:
+  type: config_object
+  label: 'captchaeu settings'
+  mapping:
+    public_key:
+      type: string
+      label: 'Public key'
+    rest_key:
+      type: string
+      label: 'REST key'
+    enable_validation_logging:
+      type: boolean
+      label: 'Enable validation logging'

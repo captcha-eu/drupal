@@ -1,0 +1,14 @@
+{
+  "name": "drupal/captchaeu",
+  "description": "Integrate captcha.eu protection service to prevent spam and abuse while ensuring smooth user experience.",
+  "type": "drupal-module",
+  "homepage": "https://www.drupal.org/project/captchaeu",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/captchaeu",
+    "source": "https://git.drupal.org/project/captchaeu.git"
+  },
+  "license": "GPL-2.0+",
+  "require": {
+    "drupal/captcha": ">=1 || <=2"
+  }
+}

@@ -1,0 +1,7 @@
+captchaeu.admin_settings_form:
+  path: '/admin/config/people/captcha/captchaeu'
+  defaults:
+    _form: '\Drupal\captchaeu\Form\CaptchaEuAdminSettingsForm'
+    _title: 'Captcha.EU'
+  requirements:
+    _permission: 'administer CAPTCHA settings'

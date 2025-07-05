@@ -1,0 +1,138 @@
+<?php
+
+/**
+ * @file
+ * Captcha.EU integration module.
+ */
+
+use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\Render\Markup;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Template\Attribute;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_help().
+ */
+function captchaeu_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.captchaeu':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('<a href=":url">Captcha.EU</a> is a service to protect your website from spam and abuse.', [':url' => 'https://captcha.eu/']) . '</p>';
+      $output .= '<h3>' . t('Configuration') . '</h3>';
+      $output .= '<ol>';
+      $output .= '<li>' . t('Enable Captcha.EU and CAPTCHA modules in Administration > Extend') . '</li>';
+      $output .= '<li>' . t('You will now find a Captcha.EU tab in the CAPTCHA administration page available at: Administration > Configuration > People > CAPTCHA module settings > Captcha.EU') . '</li>';
+      $output .= '<li>' . t('Register your web site at <a href=":url">https://captcha.eu/signup</a>', [':url' => 'https://captcha.eu/signup']) . '</li>';
+      $output .= '<li>' . t('Input the public key and REST key into the Captcha.EU settings.') . '</li>';
+      $output .= '<li>' . t('Visit the Captcha administration page and set where you want the Captcha.EU form to be presented: Administration > Configuration > People > CAPTCHA module settings') . '</li>';
+      $output .= '</ol>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_captcha().
+ */
+function captchaeu_captcha($op, $captcha_type = '') {
+
+  switch ($op) {
+    case 'list':
+      return ['captchaeu'];
+
+    case 'generate':
+      $captcha = [];
+      if ($captcha_type == 'captchaeu') {
+        $config = \Drupal::config('captchaeu.settings');
+        $renderer = \Drupal::service('renderer');
+        $captchaeu_public_key = $config->get('public_key');
+        $captchaeu_rest_key = $config->get('rest_key');
+
+        if (!empty($captchaeu_public_key) && !empty($captchaeu_rest_key)) {
+          // Build the captchaeu captcha form if public_key and rest_key are
+          // configured. Captcha requires TRUE to be returned in solution.
+          $captcha['solution'] = TRUE;
+          $captcha['captcha_validate'] = 'captchaeu_captcha_validation';
+          $captcha['form']['captcha_response'] = [
+            '#type' => 'hidden',
+            '#value' => 'Captcha.EU no captcha',
+          ];
+
+          // As the validate callback does not depend on sid or solution, this
+          // captcha type can be displayed on cached pages.
+          $captcha['cacheable'] = TRUE;
+
+          $captcha['form']['captchaeu_widget'] = [
+            '#markup' => '<div id="captcha-eu-widget"></div>',
+            '#suffix' => Markup::create('<noscript>' . t('You need Javascript for CAPTCHA verification to submit this form.') . '</noscript>'),
+            '#attached' => [
+              'library' => [
+                'captchaeu/captcha-eu-sdk',
+              ],
+              'drupalSettings' => [
+                'captchaeu' => [
+                  'publicKey' => $captchaeu_public_key,
+                ],
+              ],
+            ],
+          ];
+        }
+        else {
+          if (\Drupal::currentUser()->hasPermission('administer CAPTCHA settings')) {
+            \Drupal::messenger()->addWarning(t('Captcha.EU is not configured! Click <a href="@link">here</a> to configure Captcha.EU. In the meantime challenge type "math" is used as the example fallback.', ['@link' => Url::fromRoute('captchaeu.admin_settings_form')->toString()]));
+          }
+          // Fallback to Math captcha as captchaeu is not configured.
+          $captcha = captcha_captcha('generate', 'Math');
+        }
+
+        // If module configuration changes the form cache need to be refreshed.
+        $renderer->addCacheableDependency($captcha['form'], $config);
+      }
+      return $captcha;
+  }
+}
+
+/**
+ * CAPTCHA Callback; Validates the captchaeu code.
+ */
+function captchaeu_captcha_validation($solution, $response, $element, $form_state) {
+  $config = \Drupal::config('captchaeu.settings');
+  $requestStack = \Drupal::service('request_stack');
+  $captchaSolution = $requestStack->getCurrentRequest()->request->get('captcha_at_solution');
+
+  $captchaeu_rest_key = $config->get('rest_key');
+  if (empty($captchaSolution) || empty($captchaeu_rest_key)) {
+    return FALSE;
+  }
+
+  $options = [
+    'json' => json_decode($captchaSolution, TRUE),
+    'headers' => [
+      'Content-Type' => 'application/json',
+      'Rest-Key' => $captchaeu_rest_key,
+    ],
+    // Stop firing exception on response status code >= 300.
+    'http_errors' => FALSE,
+  ];
+  
+  $apiResponse = \Drupal::httpClient()->post('https://www.captcha.eu/validate', $options);
+  $apiResponseContent = $apiResponse->getBody()->getContents();
+  $result = json_decode($apiResponseContent, TRUE);
+  
+  $loggerContent = new FormattableMarkup('Captcha validation failed: "@errors". Status code: "@status_code".', [
+    '@status_code' => $apiResponse->getStatusCode(),
+    '@errors' => isset($result['error']) ? $result['error'] : 'None',
+  ]);
+  $loggerContentString = $loggerContent->__toString();
+
+  if (isset($result['success']) && $result['success'] == TRUE) {
+    return TRUE;
+  }
+
+  // Log any failed validation attempts, if validation logging is enabled:
+  if ($config->get('enable_validation_logging')) {
+    \Drupal::logger('captchaeu')->info($loggerContentString);
+  }
+  return FALSE;
+}

@@ -1,0 +1,9 @@
+captcha-eu-sdk:
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://captcha.eu/license
+    gpl-compatible: true
+  js:
+    https://www.captcha.eu/sdk.js: { attributes: { defer: true }, external: true }
+    js/captchaeu.setup.js: {}

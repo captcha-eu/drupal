@@ -1,0 +1,6 @@
+captchaeu.admin_settings_form:
+  title: 'Captcha.EU'
+  parent: captcha.settings
+  description: 'Administer the Captcha.EU integration.'
+  route_name: captchaeu.admin_settings_form
+  weight: 1

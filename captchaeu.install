@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the captchaeu module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function captchaeu_requirements($phase) {
+  $requirements = [];
+  // If we are not in runtime phase, there is nothing to do. So bail out early.
+  if ($phase !== 'runtime') {
+    return [];
+  }
+
+  // Check if the captcha.eu SDK is accessible
+  $config = \Drupal::config('captchaeu.settings');
+  if (empty($config->get('public_key')) || empty($config->get('rest_key'))) {
+    $requirements['captchaeu_config'] = [
+      'title' => t('Captcha.EU configuration'),
+      'severity' => REQUIREMENT_WARNING,
+      'value' => t('Not configured'),
+      'description' => t('Captcha.EU is not properly configured. Please configure your public key and REST key in the <a href="@url">Captcha.EU settings</a>.', [
+        '@url' => '/admin/config/people/captcha/captchaeu',
+      ]),
+    ];
+  }
+  
+  return $requirements;
+}

@@ -1,0 +1,4 @@
+captchaeu.admin_settings_form:
+  route_name: captchaeu.admin_settings_form
+  title: Captcha.EU
+  base_route: captcha_settings
